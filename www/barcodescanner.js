@@ -8,30 +8,32 @@
  */
 
 
-        var exec = cordova.require("cordova/exec");
+var exec = require('cordova/exec');
 
-        var scanInProgress = false;
+var PLUGIN_NAME = 'BarcodeScanner';
 
-        /**
-         * Constructor.
-         *
-         * @returns {BarcodeScanner}
-         */
-        function BarcodeScanner() {
+var scanInProgress = false;
 
-            /**
-             * Encoding constants.
-             *
-             * @type Object
-             */
-            this.Encode = {
-                TEXT_TYPE: "TEXT_TYPE",
-                EMAIL_TYPE: "EMAIL_TYPE",
-                PHONE_TYPE: "PHONE_TYPE",
-                SMS_TYPE: "SMS_TYPE"
-                //  CONTACT_TYPE: "CONTACT_TYPE",  // TODO:  not implemented, requires passing a Bundle class from Javascript to Java
-                //  LOCATION_TYPE: "LOCATION_TYPE" // TODO:  not implemented, requires passing a Bundle class from Javascript to Java
-            };
+/**
+ * Constructor.
+ *
+ * @returns {BarcodeScanner}
+ */
+function BarcodeScanner() {
+
+    /**
+     * Encoding constants.
+     *
+     * @type Object
+     */
+    this.Encode = {
+        TEXT_TYPE: "TEXT_TYPE",
+        EMAIL_TYPE: "EMAIL_TYPE",
+        PHONE_TYPE: "PHONE_TYPE",
+        SMS_TYPE: "SMS_TYPE"
+        //  CONTACT_TYPE: "CONTACT_TYPE",  // TODO:  not implemented, requires passing a Bundle class from Javascript to Java
+        //  LOCATION_TYPE: "LOCATION_TYPE" // TODO:  not implemented, requires passing a Bundle class from Javascript to Java
+    };
 
     /**
      * Barcode format constants, defined in ZXing library.
@@ -59,8 +61,8 @@
         "upc_A": 16384,
         "upc_E": 32768,
         "upc_EAN_EXTENSION": 65536
-        };
-  }
+    };
+}
 
 /**
  * Read code from scanner.
@@ -75,82 +77,82 @@
  */
 BarcodeScanner.prototype.scan = function (successCallback, errorCallback, config) {
 
-            if (config instanceof Array) {
-                // do nothing
-            } else {
-                if (typeof(config) === 'object') {
-                    // string spaces between formats, ZXing does not like that
-                    if (config.formats) {
-                        config.formats = config.formats.replace(/\s+/g, '');
-                    }
-                    config = [ config ];
-                } else {
-                    config = [];
-                }
+    if (config instanceof Array) {
+        // do nothing
+    } else {
+        if (typeof (config) === 'object') {
+            // string spaces between formats, ZXing does not like that
+            if (config.formats) {
+                config.formats = config.formats.replace(/\s+/g, '');
             }
+            config = [config];
+        } else {
+            config = [];
+        }
+    }
 
-            if (errorCallback == null) {
-                errorCallback = function () {
-                };
-            }
-
-            if (typeof errorCallback != "function") {
-                console.log("BarcodeScanner.scan failure: failure parameter not a function");
-                return;
-            }
-
-            if (typeof successCallback != "function") {
-                console.log("BarcodeScanner.scan failure: success callback parameter must be a function");
-                return;
-            }
-
-            if (scanInProgress) {
-                errorCallback('Scan is already in progress');
-                return;
-            }
-
-            scanInProgress = true;
-
-            exec(
-                function(result) {
-                    scanInProgress = false;
-                    // work around bug in ZXing library
-                    if (result.format === 'UPC_A' && result.text.length === 13) {
-                        result.text = result.text.substring(1);
-                    }
-                    successCallback(result);
-                },
-                function(error) {
-                    scanInProgress = false;
-                    errorCallback(error);
-                },
-                'BarcodeScanner',
-                'scan',
-                config
-            );
+    if (errorCallback == null) {
+        errorCallback = function () {
         };
+    }
 
-        //-------------------------------------------------------------------
-        BarcodeScanner.prototype.encode = function (type, data, successCallback, errorCallback, options) {
-            if (errorCallback == null) {
-                errorCallback = function () {
-                };
+    if (typeof errorCallback != "function") {
+        console.log("BarcodeScanner.scan failure: failure parameter not a function");
+        return;
+    }
+
+    if (typeof successCallback != "function") {
+        console.log("BarcodeScanner.scan failure: success callback parameter must be a function");
+        return;
+    }
+
+    if (scanInProgress) {
+        errorCallback('Scan is already in progress');
+        return;
+    }
+
+    scanInProgress = true;
+
+    exec(
+        function (result) {
+            scanInProgress = false;
+            // work around bug in ZXing library
+            if (result.format === 'UPC_A' && result.text.length === 13) {
+                result.text = result.text.substring(1);
             }
+            successCallback(result);
+        },
+        function (error) {
+            scanInProgress = false;
+            errorCallback(error);
+        },
+        PLUGIN_NAME,
+        'scan',
+        config
+    );
+};
 
-            if (typeof errorCallback != "function") {
-                console.log("BarcodeScanner.encode failure: failure parameter not a function");
-                return;
-            }
-
-            if (typeof successCallback != "function") {
-                console.log("BarcodeScanner.encode failure: success callback parameter must be a function");
-                return;
-            }
-
-            exec(successCallback, errorCallback, 'BarcodeScanner', 'encode', [
-                {"type": type, "data": data, "options": options}
-            ]);
+//-------------------------------------------------------------------
+BarcodeScanner.prototype.encode = function (type, data, successCallback, errorCallback, options) {
+    if (errorCallback == null) {
+        errorCallback = function () {
         };
+    }
 
-        var barcodeScanner = new BarcodeScanner();
-        module.exports = barcodeScanner;
+    if (typeof errorCallback != "function") {
+        console.log("BarcodeScanner.encode failure: failure parameter not a function");
+        return;
+    }
+
+    if (typeof successCallback != "function") {
+        console.log("BarcodeScanner.encode failure: success callback parameter must be a function");
+        return;
+    }
+
+    exec(successCallback, errorCallback, PLUGIN_NAME, 'encode', [
+        { "type": type, "data": data, "options": options }
+    ]);
+};
+
+var barcodeScanner = new BarcodeScanner();
+module.exports = barcodeScanner;
